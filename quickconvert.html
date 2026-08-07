@@ -85,8 +85,12 @@ footer a{color:var(--accent);text-decoration:none}
 
 <script>
 // ======================= DATA =======================
-const L=((lang)=>['zh','en'].includes(lang)?lang:'zh')((new URLSearchParams(location.search)).get('lang')||localStorage.getItem('qclang')||'zh');
-localStorage.setItem('qclang',L);
+let L='zh';
+try{
+  L=((new URLSearchParams(location.search)).get('lang'))||localStorage.getItem('qclang')||'zh';
+  if(!['zh','en'].includes(L))L='zh';
+  localStorage.setItem('qclang',L);
+}catch(e){L='zh';}
 let currentCat='length',baseIdx={},selectedLine=null,currencyBaseKey='美元 (USD)',liveRates=false;
 
 const T={zh:{
@@ -272,7 +276,7 @@ function onBaseChange(){
 
 function toggleLang(){
   L=L=='zh'?'en':'zh';
-  localStorage.setItem('qclang',L);
+  try{localStorage.setItem('qclang',L)}catch(e){}
   // Rebuild category labels
   for(let i=0;i<CATEGORIES.length;i++){
     let lbl=(L=='zh')?['📏 长度','⚖️ 重量','🌡️ 温度','📐 面积','🧪 体积','🏃 速度','💾 数据','📐 角度','⚡ 能量','💨 压力','💰 货币','👕 尺码','🕐 时区']:
@@ -438,7 +442,9 @@ async function fetchLiveRates(){
 }
 
 // ======================= INIT =======================
-buildUI();
+document.addEventListener('DOMContentLoaded',()=>{
+  buildUI();
+});
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.key>='1'&&e.key<='9'){
     e.preventDefault();
