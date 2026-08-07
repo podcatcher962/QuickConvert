@@ -284,10 +284,9 @@ function selectCat(key){
   currentCat=key;
   selectedLine=null;
   document.getElementById('btnCopyOne').disabled=true;
-  // Update active button via onclick attribute
-  document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
-    let match = btn.getAttribute('onclick')||'';
-    btn.classList.toggle('active', match.includes(\"'\"+key+\"'\")) || match.includes('\"'+key+'\"'));
+  document.querySelectorAll('#catBar .cat-btn').forEach(function(btn){
+    var match=btn.getAttribute('onclick')||'';
+    btn.classList.toggle('active',match.indexOf(key)>=0);
   });
   buildUI();
 }
