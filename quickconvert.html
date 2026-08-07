@@ -93,9 +93,7 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 <div id="currencyBar">
   <label id="curLabel">输入币种:</label>
-  <select id="curSelect" onchange="convert()">
-    <option selected>美元 (USD)</option><option>人民币 (CNY)</option><option>欧元 (EUR)</option><option>日元 (JPY)</option><option>英镑 (GBP)</option><option>港币 (HKD)</option><option>韩元 (KRW)</option><option>澳元 (AUD)</option><option>加元 (CAD)</option><option>新加坡元 (SGD)</option><option>瑞士法郎 (CHF)</option><option>新台币 (TWD)</option>
-  </select>
+  <select id="curSelect" onchange="convert()"></select>
   <button class="btn btn-offline" onclick="convert();statusMsg('当前: 离线固定汇率')" id="btnOffline">📴 离线</button>
   <button class="btn btn-live" onclick="fetchLiveRates()" id="btnLive">🌐 实时汇率</button>
 </div>
@@ -251,8 +249,16 @@ function selectCat(key){
     document.getElementById('curLabel').textContent=t('currencyBase');
     document.getElementById('btnOffline').textContent=t('offline');
     document.getElementById('btnLive').textContent=t('live');
-    var sel=document.getElementById('curSelect');
-    if(sel.selectedIndex>=0)currencyBaseKey=sel.value;
+    // Rebuild currency options in current language
+    var sel=document.getElementById('curSelect'),cd=curDict();
+    sel.innerHTML='';
+    for(var ck of Object.keys(cd)){
+      var opt=document.createElement('option');
+      opt.value=ck;opt.textContent=ck;
+      if(ck===currencyBaseKey)opt.selected=true;
+      sel.appendChild(opt);
+    }
+    currencyBaseKey=sel.value;
   }else if(key==='temperature'||UNITS[key]){
     curBar.style.display='none';baseRow.style.display='flex';
     document.getElementById('baseLabel').textContent=t('base');
