@@ -229,7 +229,7 @@ function buildUI(){
     document.getElementById('currencyBar').style.display='none';
     document.getElementById('baseRow').style.display='flex';
     document.getElementById('baseLabel').textContent=t('base');
-    buildBaseSelect();
+    buildBaseSelectFor(currentCat);
   }else{
     document.getElementById('currencyBar').style.display='none';
     document.getElementById('baseRow').style.display='none';
@@ -237,20 +237,6 @@ function buildUI(){
   
   updateInputHint();
   convert();
-}
-
-function buildBaseSelect(){
-  let sel=document.getElementById('baseSelect'),units=UNITS[currentCat];
-  if(!units)return;
-  sel.innerHTML='';
-  let bi=baseIdx[currentCat]||0;
-  if(bi>=units.length)bi=0;
-  units.forEach((u,i)=>{
-    let opt=document.createElement('option');
-    opt.value=i;opt.textContent=ulab(u[0],u[1]);
-    if(i===bi)opt.selected=true;
-    sel.appendChild(opt);
-  });
 }
 
 function buildTempBase(){
@@ -284,11 +270,31 @@ function selectCat(key){
   currentCat=key;
   selectedLine=null;
   document.getElementById('btnCopyOne').disabled=true;
-  document.querySelectorAll('#catBar .cat-btn').forEach(function(btn){
-    var match=btn.getAttribute('onclick')||'';
-    btn.classList.toggle('active',match.indexOf(key)>=0);
-  });
+  // Force rebuild base select immediately for target category
+  try{
+    if(key==='temperature')buildTempBase();
+    else if(UNITS[key])buildBaseSelectFor(key);
+    // Update active button state
+    document.querySelectorAll('#catBar .cat-btn').forEach(function(btn){
+      var match=btn.getAttribute('onclick')||'';
+      btn.classList.toggle('active',match.indexOf(key)>=0);
+    });
+  }catch(e){}
   buildUI();
+}
+
+function buildBaseSelectFor(cat){
+  var sel=document.getElementById('baseSelect'),units=UNITS[cat];
+  if(!units||!sel)return;
+  sel.innerHTML='';
+  var bi=baseIdx[cat]||0;
+  if(bi>=units.length)bi=0;
+  for(var i=0;i<units.length;i++){
+    var opt=document.createElement('option');
+    opt.value=i;opt.textContent=ulab(units[i][0],units[i][1]);
+    if(i===bi)opt.selected=true;
+    sel.appendChild(opt);
+  }
 }
 
 function onBaseChange(){
