@@ -208,33 +208,7 @@ function buildUI(){
   document.getElementById('status').textContent=t('status');
   document.getElementById('btnCopyOne').textContent=t('copyOne');
   document.getElementById('btnCopyAll').textContent=t('copyAll');
-  
-  
-  if(currentCat==='currency'){
-    document.getElementById('currencyBar').style.display='flex';
-    document.getElementById('baseRow').style.display='none';
-    document.getElementById('curLabel').textContent=t('currencyBase');
-    document.getElementById('btnOffline').textContent=t('offline');
-    document.getElementById('btnLive').textContent=t('live');
-    document.getElementById('baseLabel').textContent=t('base');
-    // Currency select already populated in HTML
-    let sel=document.getElementById('curSelect');
-    if(sel.selectedIndex>=0)currencyBaseKey=sel.value;
-  }else if(currentCat==='temperature'){
-    document.getElementById('currencyBar').style.display='none';
-    document.getElementById('baseRow').style.display='flex';
-    document.getElementById('baseLabel').textContent=t('base');
-    buildTempBase();
-  }else if(UNITS[currentCat]){
-    document.getElementById('currencyBar').style.display='none';
-    document.getElementById('baseRow').style.display='flex';
-    document.getElementById('baseLabel').textContent=t('base');
-    buildBaseSelectFor(currentCat);
-  }else{
-    document.getElementById('currencyBar').style.display='none';
-    document.getElementById('baseRow').style.display='none';
-  }
-  
+  // selectCat handles bar visibility + selector contents. Only init here on first load.
   updateInputHint();
   convert();
 }
@@ -270,17 +244,30 @@ function selectCat(key){
   currentCat=key;
   selectedLine=null;
   document.getElementById('btnCopyOne').disabled=true;
-  // Force rebuild base select immediately for target category
-  try{
+  // Own ALL bar display + selector logic here — no dependency on buildUI
+  var curBar=document.getElementById('currencyBar'),baseRow=document.getElementById('baseRow');
+  if(key==='currency'){
+    curBar.style.display='flex';baseRow.style.display='none';
+    document.getElementById('curLabel').textContent=t('currencyBase');
+    document.getElementById('btnOffline').textContent=t('offline');
+    document.getElementById('btnLive').textContent=t('live');
+    var sel=document.getElementById('curSelect');
+    if(sel.selectedIndex>=0)currencyBaseKey=sel.value;
+  }else if(key==='temperature'||UNITS[key]){
+    curBar.style.display='none';baseRow.style.display='flex';
+    document.getElementById('baseLabel').textContent=t('base');
     if(key==='temperature')buildTempBase();
-    else if(UNITS[key])buildBaseSelectFor(key);
-    // Update active button state
-    document.querySelectorAll('#catBar .cat-btn').forEach(function(btn){
-      var match=btn.getAttribute('onclick')||'';
-      btn.classList.toggle('active',match.indexOf(key)>=0);
-    });
-  }catch(e){}
-  buildUI();
+    else buildBaseSelectFor(key);
+  }else{
+    curBar.style.display='none';baseRow.style.display='none';
+  }
+  // Update active button state
+  document.querySelectorAll('#catBar .cat-btn').forEach(function(btn){
+    var match=btn.getAttribute('onclick')||'';
+    btn.classList.toggle('active',match.indexOf(key)>=0);
+  });
+  updateInputHint();
+  convert();
 }
 
 function buildBaseSelectFor(cat){
@@ -307,14 +294,13 @@ function onBaseChange(){
 function toggleLang(){
   L=L=='zh'?'en':'zh';
   try{localStorage.setItem('qclang',L)}catch(e){}
-  // Update category button labels
   document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
-    let cat=btn.dataset.cat;
-    let catIdx=CATEGORIES.findIndex(c=>c[1]===cat);
-    if(catIdx>=0)CATEGORIES[catIdx][0]=catLabels[L][cat];
-    btn.textContent=catLabels[L][cat];
+    var catKey=btn.getAttribute('onclick').match(/selectCat\('(\w+)'\)/);
+    if(catKey)btn.textContent=catLabels[L][catKey[1]];
   });
   buildUI();
+  // Re-run selectCat to rebuild base selector with new language
+  selectCat(currentCat);
 }
 
 // ======================= CONVERSION =======================
