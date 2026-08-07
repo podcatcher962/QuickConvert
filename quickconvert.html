@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>QuickConvert · 万能换算器</title>
+<style>
+:root{--bg:#F5F5F5;--card:#FFF;--accent:#3949AB;--accent2:#5C6BC0;--fg:#212121;--fg2:#757575;--border:#E0E0E0;--analogy-bg:#E8EAF6;--green:#43A047}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei UI','PingFang SC',-apple-system,sans-serif;background:var(--bg);color:var(--fg);max-width:740px;margin:0 auto;padding:8px;min-height:100vh}
+.title-bar{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.title-bar h1{font-size:16px;font-weight:700;margin:0}
+.title-bar .sub{font-size:11px;opacity:0.75}
+.lang-btn{background:#283593;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap}
+.input-box{background:var(--card);border:1px solid var(--border);border-top:none;padding:10px 14px}
+.input-box label{font-size:12px;color:var(--fg2);display:block;margin-bottom:4px}
+.input-box input{width:100%;font-size:22px;font-family:'Consolas','Courier New',monospace;border:none;outline:none;text-align:center;padding:8px 0;background:transparent}
+.cat-bar{display:flex;flex-wrap:wrap;gap:3px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-top:none}
+.cat-btn{padding:5px 8px;font-size:10px;border:1px solid var(--border);border-radius:5px;background:var(--card);cursor:pointer;color:var(--fg);white-space:nowrap;transition:all .15s}
+.cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.base-row{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
+.base-row label{color:var(--fg2);white-space:nowrap}
+.base-row select{padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--card);max-width:180px}
+#currencyBar{display:none}
+.results{background:var(--card);border:1px solid var(--border);border-top:none;max-height:360px;overflow-y:auto;font-family:'Consolas','Courier New',monospace;font-size:11px;line-height:1.7;padding:8px 14px}
+.res-line{padding:2px 0;cursor:pointer;border-radius:3px;word-break:break-all}
+.res-line:hover{background:#F0F0FF}
+.res-line.selected{background:var(--analogy-bg);color:var(--accent)}
+.res-line .analogy{color:var(--accent2);font-size:10px;margin-left:12px}
+.bottom-bar{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;justify-content:space-between;flex-wrap:wrap}
+.bottom-bar .status{font-size:10px;color:var(--fg2)}
+.btn{padding:6px 14px;border:none;border-radius:5px;cursor:pointer;font-size:12px;color:#fff;white-space:nowrap}
+.btn-copy{background:var(--accent)}
+.btn-copy1{background:var(--accent2)}
+.btn-copy1:disabled{background:#BDBDBD;color:#616161;cursor:default}
+.btn-live{background:var(--green)}
+.btn-offline{background:#9E9E9E}
+footer{text-align:center;color:var(--fg2);font-size:10px;padding:12px 0;margin-top:8px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){
+  .cat-btn{padding:4px 6px;font-size:9px}
+  .input-box input{font-size:18px}
+  .results{font-size:10px;max-height:280px}
+  .btn{padding:5px 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <div><h1>🔢 QuickConvert</h1><span class="sub" id="subTitle">永远的兰兰 · 万能换算</span></div>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn">中/EN</button>
+</div>
+
+<div class="input-box">
+  <label id="inputLabel">输入数值 (米 (m))</label>
+  <input type="text" id="inputVal" placeholder="输入数字..." oninput="convert()" autofocus>
+</div>
+
+<div class="cat-bar" id="catBar"></div>
+<div class="base-row" id="baseRow" style="display:none">
+  <label id="baseLabel">基准:</label>
+  <select id="baseSelect" onchange="onBaseChange()"></select>
+  <span style="flex:1"></span>
+</div>
+<div id="currencyBar" class="base-row">
+  <label id="curLabel">输入币种:</label>
+  <select id="curSelect" onchange="convert()"></select>
+  <span style="flex:1"></span>
+  <button class="btn btn-offline" onclick="convert();statusMsg('当前: 离线固定汇率')" id="btnOffline">📴 离线</button>
+  <button class="btn btn-live" onclick="fetchLiveRates()" id="btnLive">🌐 实时汇率</button>
+</div>
+<div class="results" id="results" onclick="handleResultClick(event)" ondblclick="handleResultDblClick(event)"></div>
+
+<div class="bottom-bar">
+  <span class="status" id="status">💡 点击结果行查看类比 · 单击复制</span>
+  <div style="display:flex;gap:4px">
+    <button class="btn btn-copy1" id="btnCopyOne" disabled onclick="copyOne()">📋 复制此项</button>
+    <button class="btn btn-copy" onclick="copyAll()">📋 复制全部</button>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/podcatcher962/QuickConvert" target="_blank">github.com/podcatcher962/QuickConvert</a> · © 永远的兰兰 / forever-chitanda · 单文件 · 离线 · 零隐私
+</footer>
+
+<script>
+// ======================= DATA =======================
+const L=((lang)=>['zh','en'].includes(lang)?lang:'zh')((new URLSearchParams(location.search)).get('lang')||localStorage.getItem('qclang')||'zh');
+localStorage.setItem('qclang',L);
+let currentCat='length',baseIdx={},selectedLine=null,currencyBaseKey='美元 (USD)',liveRates=false;
+
+const T={zh:{
+  title:'永远的兰兰 · 万能换算',input:'输入数值',base:'基准:',copyOne:'📋 复制此项',copyAll:'📋 复制全部',
+  status:'💡 点击结果行查看类比',copied:'✅ 已复制',analogyNone:'💡 暂无匹配类比',
+  currencyBase:'输入币种:',offline:'📴 离线',live:'🌐 实时汇率',fetching:'🌐 正在获取实时汇率...',
+  fetchOk:'✅ 实时汇率已更新',fetchFail:'❌ 获取失败',sizeHeader:'👞 鞋码对照',clothHeader:'👔 服装尺码参考',
+  utcTime:'UTC 时间',outOfRange:'不在常用范围',men:'男鞋',women:'女鞋',
+},en:{
+  title:'forever-chitanda · Universal Converter',input:'Enter value',base:'Base:',copyOne:'📋 Copy This',copyAll:'📋 Copy All',
+  status:'💡 Click a line for analogy',copied:'✅ Copied',analogyNone:'💡 No matching analogy',
+  currencyBase:'Base:',offline:'📴 Offline',live:'🌐 Live Rates',fetching:'🌐 Fetching live rates...',
+  fetchOk:'✅ Live rates updated',fetchFail:'❌ Fetch failed',sizeHeader:'👞 Shoe Size Chart',clothHeader:'👔 Clothing Size Ref',
+  utcTime:'UTC Time',outOfRange:'out of range',men:'Men',women:'Women',
+}};
+
+const CATEGORIES=[
+  ['📏 '+((L=='zh')?'长度':'Length'),'length'],['⚖️ '+((L=='zh')?'重量':'Weight'),'weight'],
+  ['🌡️ '+((L=='zh')?'温度':'Temp'),'temperature'],['📐 '+((L=='zh')?'面积':'Area'),'area'],
+  ['🧪 '+((L=='zh')?'体积':'Volume'),'volume'],['🏃 '+((L=='zh')?'速度':'Speed'),'speed'],
+  ['💾 '+((L=='zh')?'数据':'Data'),'data'],['📐 '+((L=='zh')?'角度':'Angle'),'angle'],
+  ['⚡ '+((L=='zh')?'能量':'Energy'),'energy'],['💨 '+((L=='zh')?'压力':'Pressure'),'pressure'],
+  ['💰 '+((L=='zh')?'货币':'Currency'),'currency'],['👕 '+((L=='zh')?'尺码':'Size'),'size'],
+  ['🕐 '+((L=='zh')?'时区':'Timezone'),'timezone'],
+];
+
+const UNITS={
+length:[['米 (m)','Meter (m)',1],['厘米 (cm)','Centimeter (cm)',100],['毫米 (mm)','Millimeter (mm)',1000],['千米 (km)','Kilometer (km)',0.001],['尺 (chi)','Chi (CN foot)',3],['寸 (cun)','Cun (CN inch)',30],['丈 (zhang)','Zhang',0.3],['英尺 (ft)','Foot (ft)',3.28084],['英寸 (in)','Inch (in)',39.3701],['码 (yd)','Yard (yd)',1.09361],['英里 (mi)','Mile (mi)',0.000621371],['里 (li)','Li',0.002],['海里 (nmi)','Nautical mile',0.000539957]],
+weight:[['千克 (kg)','Kilogram (kg)',1],['克 (g)','Gram (g)',1000],['毫克 (mg)','Milligram (mg)',1e6],['吨 (t)','Tonne (t)',0.001],['斤 (jin)','Jin (500g)',2],['两 (liang)','Liang (50g)',20],['磅 (lb)','Pound (lb)',2.20462],['盎司 (oz)','Ounce (oz)',35.274],['克拉 (ct)','Carat (ct)',5000]],
+area:[['平方米 (m²)','Square meter',1],['平方厘米 (cm²)','Square cm',10000],['平方千米 (km²)','Square km',1e-6],['公顷 (ha)','Hectare (ha)',0.0001],['亩 (mu)','Mu',0.0015],['平方英尺 (ft²)','Square foot',10.7639],['英亩 (acre)','Acre',0.000247105]],
+speed:[['米/秒 (m/s)','m/s',1],['千米/时 (km/h)','km/h',3.6],['英里/时 (mph)','mph',2.23694],['节 (kn)','Knot (kn)',1.94384],['马赫 (Ma)','Mach',0.00294],['光速 (c)','Speed of light',3.3356e-9]],
+volume:[['升 (L)','Liter (L)',1],['毫升 (mL)','Milliliter (mL)',1000],['立方米 (m³)','Cubic meter',0.001],['加仑 (gal)','Gallon (US)',0.264172],['品脱 (pt)','Pint (US)',2.11338],['杯 (cup)','Cup (US)',4.22675],['茶匙 (tsp)','Teaspoon',202.884],['汤匙 (tbsp)','Tablespoon',67.628]],
+angle:[['度 (°)','Degree (°)',1],['弧度 (rad)','Radian (rad)',0.0174533],['梯度 (grad)','Gradian',1.11111],['角分 (\')','Arcminute',60],['角秒 (")','Arcsecond',3600],['圈 (rev)','Revolution',0.00277778]],
+energy:[['焦耳 (J)','Joule (J)',1],['千焦 (kJ)','Kilojoule (kJ)',0.001],['卡路里 (cal)','Calorie (cal)',0.239006],['千卡 (kcal)','Kilocalorie (kcal)',0.000239006],['千瓦时 (kWh)','Kilowatt-hour',2.77778e-7],['电子伏特 (eV)','Electronvolt',6.242e18],['英热单位 (BTU)','BTU',0.000947817]],
+pressure:[['帕斯卡 (Pa)','Pascal (Pa)',1],['千帕 (kPa)','Kilopascal (kPa)',0.001],['巴 (bar)','Bar',1e-5],['大气压 (atm)','Atmosphere',9.86923e-6],['毫米汞柱 (mmHg)','mmHg',0.00750062],['psi','psi',0.000145038],['兆帕 (MPa)','Megapascal',1e-6]],
+data:[['字节 (B)','Byte (B)',1],['KB','KB',1/1024],['MB','MB',1/1048576],['GB','GB',1/1073741824],['TB','TB',1/1099511627776],['PB','PB',1/1125899906842624],['比特 (bit)','Bit',8],['Kb','Kb',1/128],['Mb','Mb',1/131072]],
+};
+
+const CUR_RATES={zh:{'美元 (USD)':1,'人民币 (CNY)':7.25,'欧元 (EUR)':0.92,'日元 (JPY)':148,'英镑 (GBP)':0.79,'港币 (HKD)':7.82,'韩元 (KRW)':1350,'澳元 (AUD)':1.55,'加元 (CAD)':1.37,'新加坡元 (SGD)':1.35,'瑞士法郎 (CHF)':0.88,'新台币 (TWD)':32.5},en:{'US Dollar (USD)':1,'Chinese Yuan (CNY)':7.25,'Euro (EUR)':0.92,'Japanese Yen (JPY)':148,'British Pound (GBP)':0.79,'HK Dollar (HKD)':7.82,'Korean Won (KRW)':1350,'Australian Dollar (AUD)':1.55,'Canadian Dollar (CAD)':1.37,'Singapore Dollar (SGD)':1.35,'Swiss Franc (CHF)':0.88,'New Taiwan Dollar (TWD)':32.5}};
+
+const TZ={zh:{'北京 (CST)':8,'东京 (JST)':9,'新加坡 (SGT)':8,'伦敦 (GMT)':0,'纽约 (EST)':-5,'洛杉矶 (PST)':-8,'悉尼 (AEST)':10,'迪拜 (GST)':4,'莫斯科 (MSK)':3,'巴黎 (CET)':1,'孟买 (IST)':5.5,'巴西 (BRT)':-3},en:{'Beijing (CST)':8,'Tokyo (JST)':9,'Singapore (SGT)':8,'London (GMT)':0,'New York (EST)':-5,'Los Angeles (PST)':-8,'Sydney (AEST)':10,'Dubai (GST)':4,'Moscow (MSK)':3,'Paris (CET)':1,'Mumbai (IST)':5.5,'Brazil (BRT)':-3}};
+
+const SHOE={men:{CN:[38,39,40,41,42,43,44,45,46],US:[6,6.5,7,8,8.5,9.5,10,11,12],UK:[5,5.5,6,7,7.5,8.5,9,10,11],EU:[38,39,40,41,42,43,44,45,46]},women:{CN:[35,36,37,38,39,40,41,42],US:[5,5.5,6,7,7.5,8.5,9.5,10],UK:[2.5,3,3.5,4.5,5,6,7,7.5],EU:[35,36,37,38,39,40,41,42]}};
+
+const ANALOGIES={
+length:[[0.0001,'≈ 一根头发丝的直径','≈ diameter of a human hair'],[0.001,'≈ 一张信用卡的厚度','≈ thickness of a credit card'],[0.01,'≈ 手指指甲宽度','≈ width of a fingernail'],[0.1,'≈ 一部手机的宽度','≈ width of a smartphone'],[0.21,'≈ A4纸宽度','≈ width of A4 paper'],[0.3,'≈ 一把标准尺子','≈ a standard ruler'],[1,'≈ 一扇标准门的高度','≈ height of a door'],[1.7,'≈ 成年人身高','≈ adult height'],[3,'≈ 一层居民楼','≈ one floor of a building'],[20,'≈ 6层居民楼','≈ a 6-story building'],[100,'≈ 一个足球场长边','≈ length of a soccer field'],[400,'≈ 标准跑道一圈','≈ one lap on a track'],[1000,'≈ 步行约10分钟','≈ a 10-minute walk'],[5000,'≈ 5公里健身跑','≈ a 5K run'],[42195,'≈ 全程马拉松','≈ a full marathon'],[100000,'≈ 北京到天津','≈ Beijing to Tianjin'],[384400000,'≈ 地球到月球','≈ Earth to Moon']],
+weight:[[0.001,'≈ 一粒米 / 一张纸','≈ a grain of rice'],[0.005,'≈ 一颗方糖','≈ a sugar cube'],[0.05,'≈ 一个鸡蛋','≈ a chicken egg'],[0.1,'≈ 一部智能手机','≈ a smartphone'],[0.5,'≈ 一瓶矿泉水','≈ a bottle of water'],[1,'≈ 1升水的重量','≈ 1 liter of water'],[3,'≈ 一台笔记本','≈ a laptop'],[5,'≈ 一袋大米','≈ a bag of rice'],[10,'≈ 一个登机行李箱','≈ a carry-on suitcase'],[20,'≈ 一桶桶装水','≈ a water jug'],[60,'≈ 成年人体重','≈ adult body weight'],[100,'≈ 一头小牛','≈ a calf'],[1000,'≈ 一辆小型轿车','≈ a compact car'],[5000,'≈ 一头成年大象','≈ an adult elephant']],
+temperature:[[-273.15,'绝对零度 | 理论最低温度','Absolute zero'],[0,'冰点 | 水结冰的温度','Freezing point'],[5,'冰箱冷藏室温度','Refrigerator temp'],[20,'舒适室温','Room temperature'],[25,'空调推荐制冷温度','AC cooling temp'],[30,'夏季炎热','Hot summer day'],[37,'人体正常体温','Normal body temperature'],[40,'高烧危险温度','High fever danger'],[50,'地表极热记录附近','Near record hot surface temp'],[100,'沸点 | 水沸腾的温度','Boiling point'],[200,'烤箱高温','Hot oven']],
+area:[[0.06,'≈ 一张A4纸','≈ A4 paper'],[1,'≈ 一张办公桌','≈ an office desk'],[5,'≈ 一个紧凑停车位','≈ a parking space'],[15,'≈ 一间小卧室','≈ a small bedroom'],[25,'≈ 一间客厅','≈ a living room'],[67,'≈ 一套一居室','≈ a 1-bedroom apt'],[100,'≈ 一套大两居','≈ a 2-bedroom apt'],[666.7,'≈ 1市亩','≈ 1 Chinese mu'],[7140,'≈ 一个标准足球场','≈ a soccer field'],[10000,'≈ 1公顷','≈ 1 hectare'],[1000000,'≈ 1平方千米','≈ 1 km²']],
+volume:[[0.005,'5mL ≈ 一茶匙','5mL ≈ one teaspoon'],[0.015,'15mL ≈ 一汤匙','15mL ≈ one tablespoon'],[0.2,'200mL ≈ 一杯水','200mL ≈ one glass'],[0.33,'330mL ≈ 一罐可乐','330mL ≈ cola can'],[0.5,'500mL ≈ 一瓶矿泉水','500mL ≈ water bottle'],[1,'1L ≈ 大瓶饮料','1L ≈ large drink'],[5,'5L ≈ 一桶食用油','5L ≈ cooking oil jug'],[19,'19L ≈ 一桶桶装水','19L ≈ water jug'],[60,'60L ≈ 一个行李箱','60L ≈ a suitcase'],[200,'200L ≈ 一台中型冰箱','200L ≈ medium fridge']],
+speed:[[1.4,'≈ 步行速度 (5km/h)','≈ walking (5km/h)'],[5,'≈ 慢跑速度 (18km/h)','≈ jogging (18km/h)'],[8,'≈ 自行车速度 (29km/h)','≈ cycling (29km/h)'],[13,'≈ 城市限速 (47km/h)','≈ city limit (47km/h)'],[33,'≈ 高速限速 (120km/h)','≈ highway (120km/h)'],[97,'≈ 高铁速度 (350km/h)','≈ high-speed rail'],[250,'≈ 客机巡航 (900km/h)','≈ airliner cruising'],[340,'≈ 音速 | 马赫1','≈ speed of sound']],
+data:[[1,'1字节 ≈ 一个英文字母','1 byte ≈ one letter'],[1024,'1KB ≈ 一条简短短信','1KB ≈ a short SMS'],[51200,'50KB ≈ 一张低分辨率图片','50KB ≈ a low-res image'],[1048576,'1MB ≈ 一张手机照片','1MB ≈ a phone photo'],[5242880,'5MB ≈ 一首MP3歌曲','5MB ≈ one MP3 song'],[1073741824,'1GB ≈ 一部720p电影','1GB ≈ one HD movie'],[4294967296,'4GB ≈ 一部1080p电影','4GB ≈ one FHD movie'],[17179869184,'16GB ≈ 一个U盘','16GB ≈ a USB drive'],[1099511627776,'1TB ≈ 一个笔记本硬盘','1TB ≈ a laptop HDD']],
+angle:[[1,'1° ≈ 钟表分针走10秒','1° ≈ minute hand 10s'],[10,'10° ≈ 拳宽在臂长处张角','10° ≈ fist at arm length'],[30,'30° ≈ 常见斜坡','30° ≈ typical slope'],[45,'45° ≈ 对角线','45° ≈ diagonal'],[60,'60° ≈ 等边三角形内角','60° ≈ equilateral angle'],[90,'90° ≈ 直角 | 墙角','90° ≈ right angle'],[180,'180° ≈ 直线 / 平角','180° ≈ straight line'],[360,'360° ≈ 一整圈','360° ≈ full circle']],
+energy:[[1,'1J ≈ 一个苹果下落1米','1J ≈ apple falling 1m'],[1000,'1kJ ≈ 静坐10分钟','1kJ ≈ sitting 10min'],[4184,'4.18kJ ≈ 1千卡','4.18kJ ≈ 1 kcal'],[420000,'420kJ ≈ 步行1小时','420kJ ≈ 1hr walking'],[2000000,'2MJ ≈ 一顿正餐','2MJ ≈ one meal'],[8400000,'8.4MJ ≈ 一天基础代谢','8.4MJ ≈ daily BMR'],[36000000,'36MJ ≈ 1度电','36MJ ≈ 1 kWh']],
+pressure:[[1,'1Pa ≈ 一张纸币对桌面','1Pa ≈ banknote on table'],[1000,'1kPa ≈ 气球内压','1kPa ≈ balloon'],[5000,'5kPa ≈ 吸尘器吸力','5kPa ≈ vacuum cleaner'],[101325,'101.3kPa ≈ 1个标准大气压','101.3kPa ≈ 1 atm'],[230000,'230kPa ≈ 汽车标准胎压','230kPa ≈ car tire'],[400000,'400kPa ≈ 高压锅压力','400kPa ≈ pressure cooker'],[1000000,'1MPa ≈ 潜水10米','1MPa ≈ diving 10m']],
+};
+
+// ======================= HELPERS =======================
+function t(key,...args){let s=T[L][key]||key;args.forEach((a,i)=>s=s.replace('{}',a));return s}
+function ulab(zh,en){return L=='zh'?zh:en}
+function curDict(){return CUR_RATES[L]}
+function tzDict(){return TZ[L]}
+function fmtNum(v){if(Math.abs(v)<1e-15)return'0';if(Math.abs(v)>=1e12||(Math.abs(v)>0&&Math.abs(v)<=1e-10))return v.toExponential(4);if(Math.abs(v)>=1e6)return v.toLocaleString('en-US',{maximumFractionDigits:2});if(Math.abs(v)>=1000)return v.toLocaleString('en-US',{maximumFractionDigits:2});if(Math.abs(v)>=1)return v.toFixed(4);if(Math.abs(v)>=0.001)return v.toFixed(6);return v.toFixed(8)}
+
+function getAnalogy(cat,bv){
+  if(!ANALOGIES[cat])return'';
+  let best=null,bestDiff=Infinity;
+  for(let [thr,zh,en] of ANALOGIES[cat]){
+    let diff=Math.abs(bv-thr)/Math.max(Math.abs(thr),1e-9);
+    if(diff<=0.6&&diff<bestDiff){best=[zh,en];bestDiff=diff}
+  }
+  return best?(L=='zh'?best[0]:best[1]):'';
+}
+
+// ======================= RENDER =======================
+function buildUI(){
+  document.getElementById('subTitle').textContent=t('title');
+  document.getElementById('langBtn').textContent=L=='zh'?'中/EN':'EN/中';
+  document.getElementById('inputLabel').textContent='';
+  document.getElementById('status').textContent=t('status');
+  document.getElementById('btnCopyOne').textContent=t('copyOne');
+  document.getElementById('btnCopyAll').textContent=t('copyAll');
+  
+  let catBar=document.getElementById('catBar');
+  catBar.innerHTML='';
+  for(let [label,key] of CATEGORIES){
+    let btn=document.createElement('button');
+    btn.className='cat-btn'+(key===currentCat?' active':'');
+    btn.textContent=label;
+    btn.onclick=()=>selectCat(key);
+    catBar.appendChild(btn);
+  }
+  
+  if(currentCat==='currency'){
+    document.getElementById('currencyBar').style.display='flex';
+    document.getElementById('baseRow').style.display='none';
+    document.getElementById('curLabel').textContent=t('currencyBase');
+    document.getElementById('btnOffline').textContent=t('offline');
+    document.getElementById('btnLive').textContent=t('live');
+    let sel=document.getElementById('curSelect');
+    sel.innerHTML='';
+    let cd=curDict();
+    for(let k of Object.keys(cd)){
+      let opt=document.createElement('option');
+      opt.value=k;opt.textContent=k;
+      if(k===currencyBaseKey)opt.selected=true;
+      sel.appendChild(opt);
+    }
+    currencyBaseKey=sel.value;
+  }else if(currentCat==='temperature'){
+    document.getElementById('currencyBar').style.display='none';
+    document.getElementById('baseRow').style.display='flex';
+    buildTempBase();
+  }else if(UNITS[currentCat]){
+    document.getElementById('currencyBar').style.display='none';
+    document.getElementById('baseRow').style.display='flex';
+    buildBaseSelect();
+  }else{
+    document.getElementById('currencyBar').style.display='none';
+    document.getElementById('baseRow').style.display='none';
+  }
+  
+  updateInputHint();
+  convert();
+}
+
+function buildBaseSelect(){
+  let sel=document.getElementById('baseSelect'),units=UNITS[currentCat];
+  sel.innerHTML='';
+  let bi=baseIdx[currentCat]||0;
+  if(bi>=units.length)bi=0;
+  units.forEach((u,i)=>{
+    let opt=document.createElement('option');
+    opt.value=i;opt.textContent=ulab(u[0],u[1]);
+    if(i===bi)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function buildTempBase(){
+  let sel=document.getElementById('baseSelect');
+  sel.innerHTML='';
+  let labels=[['摄氏度 (°C)','Celsius (°C)'],['华氏度 (°F)','Fahrenheit (°F)'],['开尔文 (K)','Kelvin (K)'],['列氏度 (°Re)','Réaumur (°Re)'],['兰金度 (°Ra)','Rankine (°Ra)']];
+  let bi=baseIdx['temperature']||0;
+  labels.forEach((l,i)=>{
+    let opt=document.createElement('option');
+    opt.value=i;opt.textContent=ulab(l[0],l[1]);
+    if(i===bi)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function updateInputHint(){
+  let hint=t('input');
+  if(currentCat==='temperature'){
+    let labels=[['摄氏度 (°C)','Celsius (°C)'],['华氏度 (°F)','Fahrenheit (°F)'],['开尔文 (K)','Kelvin (K)'],['列氏度 (°Re)','Réaumur (°Re)'],['兰金度 (°Ra)','Rankine (°Ra)']];
+    let bi=baseIdx['temperature']||0;
+    hint+=' ('+ulab(labels[bi][0],labels[bi][1])+')';
+  }else if(UNITS[currentCat]){
+    let units=UNITS[currentCat],bi=baseIdx[currentCat]||0;
+    if(bi<units.length)hint+=' ('+ulab(units[bi][0],units[bi][1])+')';
+  }
+  document.getElementById('inputLabel').textContent=hint;
+}
+
+// ======================= ACTIONS =======================
+function selectCat(key){
+  currentCat=key;
+  selectedLine=null;
+  document.getElementById('btnCopyOne').disabled=true;
+  buildUI();
+}
+
+function onBaseChange(){
+  let cat=currentCat==='temperature'?'temperature':currentCat;
+  baseIdx[cat]=parseInt(document.getElementById('baseSelect').value);
+  updateInputHint();
+  convert();
+}
+
+function toggleLang(){
+  L=L=='zh'?'en':'zh';
+  localStorage.setItem('qclang',L);
+  // Rebuild category labels
+  for(let i=0;i<CATEGORIES.length;i++){
+    let lbl=(L=='zh')?['📏 长度','⚖️ 重量','🌡️ 温度','📐 面积','🧪 体积','🏃 速度','💾 数据','📐 角度','⚡ 能量','💨 压力','💰 货币','👕 尺码','🕐 时区']:
+      ['📏 Length','⚖️ Weight','🌡️ Temp','📐 Area','🧪 Volume','🏃 Speed','💾 Data','📐 Angle','⚡ Energy','💨 Pressure','💰 Currency','👕 Size','🕐 Timezone'];
+    CATEGORIES[i][0]=lbl[i];
+  }
+  buildUI();
+}
+
+// ======================= CONVERSION =======================
+function convert(){
+  let results=document.getElementById('results'),raw=document.getElementById('inputVal').value.trim();
+  results.innerHTML='';selectedLine=null;document.getElementById('btnCopyOne').disabled=true;
+  let lines=[],cat=currentCat,baseVal=0;
+  
+  try{
+    if(cat==='temperature'){lines=convTemp(raw);}
+    else if(cat==='currency'){lines=convCurrency(raw);}
+    else if(cat==='timezone'){lines=convTimezone();}
+    else if(cat==='size'){lines=convSize(raw);}
+    else{lines=convGeneral(cat,raw);}
+  }catch(e){lines=[{text:'⚠ Error: '+e.message}]}
+  
+  lines.forEach((l,i)=>{
+    let div=document.createElement('div');
+    div.className='res-line';
+    div.innerHTML=l.text;
+    div.setAttribute('data-idx',i);
+    results.appendChild(div);
+  });
+}
+
+function convGeneral(cat,raw){
+  let val=parseFloat(raw)||0;
+  if(raw&&isNaN(parseFloat(raw)))return [{text:'⚠ '+raw+' — '+(L=='zh'?'请输入有效数字':'invalid number')}];
+  let units=UNITS[cat],bi=baseIdx[cat]||0;
+  if(bi>=units.length)bi=0;
+  let baseFactor=units[bi][2],bv=baseFactor?val/baseFactor:val;
+  let analogy=getAnalogy(cat,bv),lines=[],first=true;
+  for(let [zh,en,f] of units){
+    if(!f)continue;
+    let v=bv*f,disp=fmtNum(v),label=ulab(zh,en);
+    let txt='  <span style="display:inline-block;min-width:140px;text-align:right">'+disp+'</span>  '+label;
+    if(analogy&&first){txt+=' <span class="analogy">💡 '+analogy+'</span>';first=false}
+    lines.push({text:txt});
+  }
+  return lines;
+}
+
+function convTemp(raw){
+  let val=parseFloat(raw)||0;
+  if(raw&&isNaN(parseFloat(raw)))return [{text:'⚠ '+raw+' — '+(L=='zh'?'请输入有效数字':'invalid number')}];
+  let bi=baseIdx['temperature']||0,c;
+  if(bi===1)c=(val-32)*5/9;else if(bi===2)c=val-273.15;else if(bi===3)c=val*5/4;else if(bi===4)c=(val-491.67)*5/9;else c=val;
+  let items=[['摄氏度 (°C)','Celsius (°C)',c],['华氏度 (°F)','Fahrenheit (°F)',c*9/5+32],['开尔文 (K)','Kelvin (K)',c+273.15],['列氏度 (°Re)','Réaumur (°Re)',c*4/5],['兰金度 (°Ra)','Rankine (°Ra)',(c+273.15)*9/5]];
+  let analogy=getAnalogy('temperature',c),lines=[],first=true;
+  for(let [zh,en,x] of items){
+    let label=ulab(zh,en);
+    let txt='  <span style="display:inline-block;min-width:140px;text-align:right">'+x.toFixed(4)+'</span>  '+label;
+    if(analogy&&first){txt+=' <span class="analogy">💡 '+analogy+'</span>';first=false}
+    lines.push({text:txt});
+  }
+  return lines;
+}
+
+function convCurrency(raw){
+  let val=parseFloat(raw)||0;
+  if(raw&&isNaN(parseFloat(raw)))return [{text:'⚠ '+raw+' — '+(L=='zh'?'请输入有效数字':'invalid number')}];
+  let cd=curDict(),baseName=currencyBaseKey||Object.keys(cd)[0];
+  let baseRate=cd[baseName]||1,usd=baseRate?val/baseRate:val,lines=[];
+  for(let [name,rate] of Object.entries(cd)){
+    lines.push({text:'  <span style="display:inline-block;min-width:140px;text-align:right">'+(usd*rate).toFixed(4)+'</span>  '+name});
+  }
+  lines.push({text:'<br>💡 '+(L=='zh'?'以 '+baseName+' 为基准换算':'Base: '+baseName)+(liveRates?' (实时)':' (离线)')});
+  return lines;
+}
+
+function convTimezone(){
+  let now=new Date(),tz=tzDict(),lines=[];
+  for(let [name,off] of Object.entries(tz)){
+    let local=new Date(now.getTime()+off*3600000);
+    let sign=off>=0?'+':'';
+    lines.push({text:'  UTC'+sign+off.toFixed(1)+'  '+local.toTimeString().slice(0,5)+'  '+name});
+  }
+  lines.push({text:'<br>  '+t('utcTime')+'  '+now.toISOString().slice(0,16).replace('T',' ')});
+  return lines;
+}
+
+function convSize(raw){
+  let cn=parseInt(raw)||40,lines=[{text:t('sizeHeader')+'<br>'}];
+  let gLabels={'men':t('men'),'women':t('women')};
+  for(let [g,data] of Object.entries(SHOE)){
+    lines.push({text:'  '+gLabels[g]+':'});
+    if(!data.CN.includes(cn)){lines.push({text:'    CN '+cn+' → '+t('outOfRange')+'<br>'});continue}
+    let idx=data.CN.indexOf(cn);
+    for(let sys of['CN','US','UK','EU']){
+      if(idx<data[sys].length)lines.push({text:'    '+sys+': '+data[sys][idx]});
+    }
+    lines.push({text:''});
+  }
+  lines.push({text:t('clothHeader')});
+  let cloth={160:'XS',165:'S',170:'M',175:'L',180:'XL',185:'XXL'};
+  for(let[h,s]of Object.entries(cloth))lines.push({text:'    '+h+'cm → CN: '+s+'-'+h+' | US: '+s});
+  return lines;
+}
+
+// ======================= RESULT INTERACTION =======================
+function handleResultClick(e){
+  let div=e.target.closest('.res-line');
+  if(!div)return;
+  document.querySelectorAll('.res-line').forEach(d=>d.classList.remove('selected'));
+  div.classList.add('selected');
+  selectedLine=parseInt(div.getAttribute('data-idx'));
+  document.getElementById('btnCopyOne').disabled=false;
+}
+
+function handleResultDblClick(e){
+  let div=e.target.closest('.res-line');
+  if(!div)return;
+  let txt=div.textContent.trim();
+  if(txt)navigator.clipboard.writeText(txt).then(()=>statusMsg(t('copied')));
+}
+
+function copyOne(){
+  if(selectedLine===null)return;
+  let divs=document.querySelectorAll('.res-line');
+  if(selectedLine<divs.length){
+    let txt=divs[selectedLine].textContent.trim();
+    if(txt)navigator.clipboard.writeText(txt).then(()=>statusMsg(t('copied')));
+  }
+}
+
+function copyAll(){
+  let divs=document.querySelectorAll('.res-line');
+  let txt=Array.from(divs).map(d=>d.textContent.trim()).join('\n');
+  if(txt)navigator.clipboard.writeText(txt).then(()=>statusMsg(t('copied')));
+}
+
+function statusMsg(msg){
+  let s=document.getElementById('status');
+  s.textContent='✅ '+msg;
+  setTimeout(()=>s.textContent=t('status'),2000);
+}
+
+// ======================= LIVE RATES =======================
+async function fetchLiveRates(){
+  statusMsg(t('fetching'));
+  try{
+    let r=await fetch('https://open.er-api.com/v6/latest/USD');
+    let data=await r.json();
+    for(let lang of['zh','en']){
+      for(let name of Object.keys(CUR_RATES[lang])){
+        let code=name.split('(').pop().replace(')','');
+        if(data.rates[code])CUR_RATES[lang][name]=data.rates[code];
+      }
+    }
+    liveRates=true;
+    statusMsg(t('fetchOk'));
+    convert();
+  }catch(e){
+    statusMsg(t('fetchFail'));
+  }
+}
+
+// ======================= INIT =======================
+buildUI();
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key>='1'&&e.key<='9'){
+    e.preventDefault();
+    let idx=parseInt(e.key)-1;
+    if(idx<CATEGORIES.length)selectCat(CATEGORIES[idx][1]);
+  }
+});
+</script>
+</body>
+</html>
