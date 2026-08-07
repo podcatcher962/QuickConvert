@@ -108,8 +108,19 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <footer>
+  <a href="#" onclick="showModal('help');return false" id="linkHelp">📖 使用说明</a> ·
+  <a href="#" onclick="showModal('disclaimer');return false" id="linkDisc">⚠ 免责声明</a> ·
+  <a href="#" onclick="showModal('about');return false" id="linkAbout">ℹ 关于</a><br>
   <a href="https://github.com/podcatcher962/QuickConvert" target="_blank">github.com/podcatcher962/QuickConvert</a> · © 永远的兰兰 / forever-chitanda · 单文件 · 离线 · 零隐私
 </footer>
+
+<div id="modalOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#FFF;border-radius:10px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);font-size:13px;line-height:1.8">
+    <h2 style="margin:0 0 12px;font-size:18px" id="modalTitle"></h2>
+    <div id="modalBody" style="white-space:pre-wrap"></div>
+    <button onclick="document.getElementById('modalOverlay').style.display='none'" style="margin-top:16px;padding:8px 24px;background:var(--accent);color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:14px">✕ 关闭</button>
+  </div>
+</div>
 
 <script>
 // ======================= DATA =======================
@@ -206,7 +217,9 @@ function buildUI(){
   document.getElementById('status').textContent=t('status');
   document.getElementById('btnCopyOne').textContent=t('copyOne');
   document.getElementById('btnCopyAll').textContent=t('copyAll');
-  // selectCat handles bar visibility + selector contents. Only init here on first load.
+  document.getElementById('linkHelp').textContent=L=='zh'?'📖 使用说明':'📖 Help';
+  document.getElementById('linkDisc').textContent=L=='zh'?'⚠ 免责声明':'⚠ Disclaimer';
+  document.getElementById('linkAbout').textContent=L=='zh'?'ℹ 关于':'ℹ About';
   updateInputHint();
   convert();
 }
@@ -442,6 +455,26 @@ function statusMsg(msg){
   let s=document.getElementById('status');
   s.textContent='✅ '+msg;
   setTimeout(()=>s.textContent=t('status'),2000);
+}
+
+// ======================= MODALS =======================
+const MODAL_TEXT={
+zh:{
+  help:'📖 QuickConvert 使用说明\n\n🔢 输入数值自动换算 — 上方选择类别，下方切换基准单位。\n💡 每条结果附带生活类比，帮助你直观理解数值大小。\n🔄 自由切换基准单位 — 选"英尺"输6 = 1.83米，类比自动适配。\n💰 货币点击"🌐 实时汇率"可联网获取最新汇率（离线默认为内置汇率）。\n👕 尺码对照表 — 输入中国鞋码即可查看美/英/欧码。\n🕐 时区 — 无需输入，自动显示全球 12 个城市当前时间。\n📋 单击结果行复制单项，双击或点按钮复制全部。\n🌐 中/EN 一键切换双语界面。\n⌨ 快捷键 Ctrl+1~9 切换前 9 个类别。\n\n⚠ 纯离线单文件，不联网不上传。',
+  disclaimer:'⚠️ 免责声明\n\n1. 本工具是纯本地离线换算工具，所有换算基于内置常量表，不连接互联网（除主动点击"实时汇率"外），不上传任何数据。\n2. 本软件按"原样"（AS-IS）提供，不提供任何明示或暗示的担保。开发者不对换算结果的准确性承担任何责任。\n3. 货币汇率数据仅供参考，实际交易以银行实时报价为准。\n4. 使用者须遵守所在地法律法规。本软件仅提供数学换算功能。\n5. 本软件仅供个人学习与工作效率提升使用。',
+  about:'QuickConvert v2.0\n\n万能离线单位换算器 / Universal Offline Unit Converter\n13 个类别 · 300+ 单位 · 生活类比 · 双语界面\n\nPython + tkinter 桌面版 + 单文件 HTML Web 版\n纯本地 · 零隐私 · 开源免费\n\nGitHub: https://github.com/podcatcher962/QuickConvert\n© 永远的兰兰',
+},
+en:{
+  help:'📖 QuickConvert Help\n\n🔢 Enter a value to auto-convert across all units in the selected category.\n💡 Each result comes with a life analogy for intuitive understanding.\n🔄 Switch base unit freely — pick "feet", type 6 = 1.83m, analogy adapts.\n💰 Click "🌐 Live Rates" for real-time forex (offline built-in rates by default).\n👕 Shoe sizes — enter CN size to see US/UK/EU equivalents.\n🕐 Timezone — auto-shows current time in 12 global cities.\n📋 Click a line to copy single, double-click or button to copy all.\n🌐 Click 中/EN to toggle bilingual interface.\n⌨ Ctrl+1~9 to switch between first 9 categories.\n\n⚠ Pure offline single-file, no internet, no upload.',
+  disclaimer:'⚠️ Disclaimer\n\n1. This tool is pure offline — all conversions use built-in constants. No internet (except manual live-rates fetch). No data upload.\n2. Provided AS-IS without warranty of any kind. The developer assumes no responsibility for accuracy.\n3. Currency rates are for reference only. Actual rates from your bank.\n4. Users must comply with local laws. This tool provides mathematical conversion only.\n5. For personal study and productivity use only.',
+  about:'QuickConvert v2.0\n\nUniversal Offline Unit Converter\n13 categories · 300+ units · Life analogies · Bilingual\n\nPython + tkinter Desktop + Single-file HTML Web\nPure local · Zero privacy · Open source\n\nGitHub: https://github.com/podcatcher962/QuickConvert\n© 永远的兰兰 / forever-chitanda',
+}};
+
+function showModal(key){
+  document.getElementById('modalTitle').textContent=key==='help'?(L==='zh'?'📖 使用说明':'📖 Help'):key==='disclaimer'?(L==='zh'?'⚠️ 免责声明':'⚠️ Disclaimer'):(L==='zh'?'ℹ 关于':'ℹ About');
+  document.getElementById('modalBody').textContent=MODAL_TEXT[L][key];
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').onclick=function(e){if(e.target===this)this.style.display='none'};
 }
 
 // ======================= LIVE RATES =======================
