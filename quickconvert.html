@@ -7,42 +7,42 @@
 <style>
 :root{--bg:#F5F5F5;--card:#FFF;--accent:#3949AB;--accent2:#5C6BC0;--fg:#212121;--fg2:#757575;--border:#E0E0E0;--analogy-bg:#E8EAF6;--green:#43A047}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Microsoft YaHei UI','PingFang SC',-apple-system,sans-serif;background:var(--bg);color:var(--fg);max-width:740px;margin:0 auto;padding:8px;min-height:100vh}
-.title-bar{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:0}
-.title-bar h1{font-size:16px;font-weight:700;margin:0}
-.title-bar .sub{font-size:11px;opacity:0.75}
-.lang-btn{background:#283593;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap}
-.input-box{background:var(--card);border:1px solid var(--border);border-top:none;padding:10px 14px}
+body{font-family:'Microsoft YaHei UI','PingFang SC',-apple-system,sans-serif;background:var(--bg);color:var(--fg);max-width:740px;margin:0 auto;padding:8px;min-height:100vh;display:flex;flex-direction:column}
+.title-bar{flex-shrink:0;background:var(--accent);color:#fff;padding:12px 16px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.title-bar h1{font-size:18px;font-weight:700;margin:0}
+.title-bar .sub{font-size:12px;opacity:0.85}
+.lang-btn{background:#283593;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;white-space:nowrap}
+.input-box{flex-shrink:0;background:var(--card);border:1px solid var(--border);border-top:none;padding:10px 16px}
 .input-box label{font-size:13px;font-weight:600;color:var(--fg);display:block;margin-bottom:4px}
-.input-box input{width:100%;font-size:22px;font-family:'Consolas','Courier New',monospace;border:none;outline:none;text-align:center;padding:8px 0;background:transparent}
-.cat-bar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#EEF1FF;border:1px solid var(--accent2);border-top:none;border-radius:0}
+.input-box input{width:100%;font-size:24px;font-family:'Consolas','Courier New',monospace;border:none;outline:none;text-align:center;padding:10px 0;background:transparent}
+.cat-bar{flex-shrink:0;display:flex;flex-wrap:wrap;gap:5px;padding:10px 12px;background:#EEF1FF;border:1px solid var(--accent2);border-top:none;min-height:44px}
 .cat-btn{padding:7px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:5px;background:#FFF;cursor:pointer;color:var(--fg);white-space:nowrap;transition:all .15s}
 .cat-btn:hover{background:#E8EAF6;border-color:var(--accent2)}
 .cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.base-row{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#F8F9FA;border:1px solid var(--border);border-top:none;font-size:12px;min-height:36px}
+.base-row{flex-shrink:0;display:flex!important;align-items:center;gap:8px;padding:8px 16px;background:#F8F9FA;border:1px solid var(--border);border-top:none;font-size:12px;min-height:38px}
 .base-row label{color:var(--fg2);white-space:nowrap}
-.base-row select{padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--card);max-width:180px}
-#currencyBar{display:none}
-.results{background:var(--card);border:1px solid var(--border);border-top:none;max-height:360px;overflow-y:auto;font-family:'Consolas','Courier New',monospace;font-size:11px;line-height:1.7;padding:8px 14px}
-.res-line{padding:2px 0;cursor:pointer;border-radius:3px;word-break:break-all}
+.base-row select{padding:4px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--card);max-width:200px}
+#currencyBar{display:none!important;flex-shrink:0;align-items:center;gap:8px;padding:8px 16px;background:#F8F9FA;border:1px solid var(--border);border-top:none;font-size:12px;min-height:38px}
+.results{flex:1;min-height:240px;background:var(--card);border:1px solid var(--border);border-top:none;overflow-y:auto;font-family:'Consolas','Courier New',monospace;font-size:12px;line-height:1.8;padding:10px 16px}
+.res-line{padding:3px 0;cursor:pointer;border-radius:3px;word-break:break-all}
 .res-line:hover{background:#F0F0FF}
 .res-line.selected{background:var(--analogy-bg);color:var(--accent)}
-.res-line .analogy{color:var(--accent2);font-size:10px;margin-left:12px}
-.bottom-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#EEF1FF;border:1px solid var(--accent2);border-top:none;border-radius:0;justify-content:space-between;flex-wrap:wrap}
+.res-line .analogy{color:var(--accent2);font-size:11px;margin-left:14px}
+.bottom-bar{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:10px 16px;background:#EEF1FF;border:1px solid var(--accent2);border-top:none;border-radius:0;justify-content:space-between;flex-wrap:wrap}
 .bottom-bar .status{font-size:11px;color:var(--fg);font-weight:500}
-.btn{padding:6px 14px;border:none;border-radius:5px;cursor:pointer;font-size:12px;color:#fff;white-space:nowrap}
+.btn{padding:7px 16px;border:none;border-radius:5px;cursor:pointer;font-size:12px;color:#fff;white-space:nowrap;font-weight:600}
 .btn-copy{background:var(--accent)}
 .btn-copy1{background:var(--accent2)}
 .btn-copy1:disabled{background:#BDBDBD;color:#616161;cursor:default}
 .btn-live{background:var(--green)}
 .btn-offline{background:#9E9E9E}
-footer{text-align:center;color:var(--fg2);font-size:10px;padding:12px 0;margin-top:8px}
+footer{flex-shrink:0;text-align:center;color:var(--fg2);font-size:11px;padding:14px 0 8px}
 footer a{color:var(--accent);text-decoration:none}
 @media(max-width:480px){
-  .cat-btn{padding:4px 6px;font-size:9px}
+  .cat-btn{padding:5px 7px;font-size:10px}
   .input-box input{font-size:18px}
-  .results{font-size:10px;max-height:280px}
-  .btn{padding:5px 10px;font-size:11px}
+  .results{font-size:11px;min-height:160px}
+  .btn{padding:5px 12px;font-size:11px}
 }
 </style>
 </head>
@@ -59,15 +59,13 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <div class="cat-bar" id="catBar"></div>
-<div class="base-row" id="baseRow" style="display:none">
+<div class="base-row" id="baseRow">
   <label id="baseLabel">基准:</label>
   <select id="baseSelect" onchange="onBaseChange()"></select>
-  <span style="flex:1"></span>
 </div>
-<div id="currencyBar" class="base-row">
+<div id="currencyBar">
   <label id="curLabel">输入币种:</label>
   <select id="curSelect" onchange="convert()"></select>
-  <span style="flex:1"></span>
   <button class="btn btn-offline" onclick="convert();statusMsg('当前: 离线固定汇率')" id="btnOffline">📴 离线</button>
   <button class="btn btn-live" onclick="fetchLiveRates()" id="btnLive">🌐 实时汇率</button>
 </div>
@@ -188,6 +186,7 @@ function buildUI(){
     document.getElementById('curLabel').textContent=t('currencyBase');
     document.getElementById('btnOffline').textContent=t('offline');
     document.getElementById('btnLive').textContent=t('live');
+    document.getElementById('baseLabel').textContent=t('base');
     let sel=document.getElementById('curSelect');
     sel.innerHTML='';
     let cd=curDict();
@@ -201,10 +200,12 @@ function buildUI(){
   }else if(currentCat==='temperature'){
     document.getElementById('currencyBar').style.display='none';
     document.getElementById('baseRow').style.display='flex';
+    document.getElementById('baseLabel').textContent=t('base');
     buildTempBase();
   }else if(UNITS[currentCat]){
     document.getElementById('currencyBar').style.display='none';
     document.getElementById('baseRow').style.display='flex';
+    document.getElementById('baseLabel').textContent=t('base');
     buildBaseSelect();
   }else{
     document.getElementById('currencyBar').style.display='none';
