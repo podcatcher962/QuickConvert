@@ -58,7 +58,21 @@ footer a{color:var(--accent);text-decoration:none}
   <input type="text" id="inputVal" placeholder="输入数字..." oninput="convert()" autofocus>
 </div>
 
-<div class="cat-bar" id="catBar"></div>
+<div class="cat-bar" id="catBar">
+  <button class="cat-btn active" data-cat="length">📏 长度</button>
+  <button class="cat-btn" data-cat="weight">⚖️ 重量</button>
+  <button class="cat-btn" data-cat="temperature">🌡️ 温度</button>
+  <button class="cat-btn" data-cat="area">📐 面积</button>
+  <button class="cat-btn" data-cat="volume">🧪 体积</button>
+  <button class="cat-btn" data-cat="speed">🏃 速度</button>
+  <button class="cat-btn" data-cat="data">💾 数据</button>
+  <button class="cat-btn" data-cat="angle">📐 角度</button>
+  <button class="cat-btn" data-cat="energy">⚡ 能量</button>
+  <button class="cat-btn" data-cat="pressure">💨 压力</button>
+  <button class="cat-btn" data-cat="currency">💰 货币</button>
+  <button class="cat-btn" data-cat="size">👕 尺码</button>
+  <button class="cat-btn" data-cat="timezone">🕐 时区</button>
+</div>
 <div class="base-row" id="baseRow">
   <label id="baseLabel">基准:</label>
   <select id="baseSelect" onchange="onBaseChange()"></select>
@@ -108,14 +122,19 @@ const T={zh:{
 }};
 
 const CATEGORIES=[
-  ['📏 '+((L=='zh')?'长度':'Length'),'length'],['⚖️ '+((L=='zh')?'重量':'Weight'),'weight'],
-  ['🌡️ '+((L=='zh')?'温度':'Temp'),'temperature'],['📐 '+((L=='zh')?'面积':'Area'),'area'],
-  ['🧪 '+((L=='zh')?'体积':'Volume'),'volume'],['🏃 '+((L=='zh')?'速度':'Speed'),'speed'],
-  ['💾 '+((L=='zh')?'数据':'Data'),'data'],['📐 '+((L=='zh')?'角度':'Angle'),'angle'],
-  ['⚡ '+((L=='zh')?'能量':'Energy'),'energy'],['💨 '+((L=='zh')?'压力':'Pressure'),'pressure'],
-  ['💰 '+((L=='zh')?'货币':'Currency'),'currency'],['👕 '+((L=='zh')?'尺码':'Size'),'size'],
-  ['🕐 '+((L=='zh')?'时区':'Timezone'),'timezone'],
+  ['length','length'],['weight','weight'],
+  ['temperature','temperature'],['area','area'],
+  ['volume','volume'],['speed','speed'],
+  ['data','data'],['angle','angle'],
+  ['energy','energy'],['pressure','pressure'],
+  ['currency','currency'],['size','size'],
+  ['timezone','timezone'],
 ];
+
+const catLabels={
+  zh:{length:'📏 长度',weight:'⚖️ 重量',temperature:'🌡️ 温度',area:'📐 面积',volume:'🧪 体积',speed:'🏃 速度',data:'💾 数据',angle:'📐 角度',energy:'⚡ 能量',pressure:'💨 压力',currency:'💰 货币',size:'👕 尺码',timezone:'🕐 时区'},
+  en:{length:'📏 Length',weight:'⚖️ Weight',temperature:'🌡️ Temp',area:'📐 Area',volume:'🧪 Volume',speed:'🏃 Speed',data:'💾 Data',angle:'📐 Angle',energy:'⚡ Energy',pressure:'💨 Pressure',currency:'💰 Currency',size:'👕 Size',timezone:'🕐 Timezone'}
+};
 
 const UNITS={
 length:[['米 (m)','Meter (m)',1],['厘米 (cm)','Centimeter (cm)',100],['毫米 (mm)','Millimeter (mm)',1000],['千米 (km)','Kilometer (km)',0.001],['尺 (chi)','Chi (CN foot)',3],['寸 (cun)','Cun (CN inch)',30],['丈 (zhang)','Zhang',0.3],['英尺 (ft)','Foot (ft)',3.28084],['英寸 (in)','Inch (in)',39.3701],['码 (yd)','Yard (yd)',1.09361],['英里 (mi)','Mile (mi)',0.000621371],['里 (li)','Li',0.002],['海里 (nmi)','Nautical mile',0.000539957]],
@@ -174,15 +193,10 @@ function buildUI(){
   document.getElementById('btnCopyOne').textContent=t('copyOne');
   document.getElementById('btnCopyAll').textContent=t('copyAll');
   
-  let catBar=document.getElementById('catBar');
-  catBar.innerHTML='';
-  for(let [label,key] of CATEGORIES){
-    let btn=document.createElement('button');
-    btn.className='cat-btn'+(key===currentCat?' active':'');
-    btn.textContent=label;
-    btn.onclick=()=>selectCat(key);
-    catBar.appendChild(btn);
-  }
+  // Bind click handlers to pre-rendered category buttons
+  document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
+    btn.onclick=()=>selectCat(btn.dataset.cat);
+  });
   
   if(currentCat==='currency'){
     document.getElementById('currencyBar').style.display='flex';
@@ -264,6 +278,10 @@ function selectCat(key){
   currentCat=key;
   selectedLine=null;
   document.getElementById('btnCopyOne').disabled=true;
+  // Update active button class
+  document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.cat===key);
+  });
   buildUI();
 }
 
@@ -277,12 +295,13 @@ function onBaseChange(){
 function toggleLang(){
   L=L=='zh'?'en':'zh';
   try{localStorage.setItem('qclang',L)}catch(e){}
-  // Rebuild category labels
-  for(let i=0;i<CATEGORIES.length;i++){
-    let lbl=(L=='zh')?['📏 长度','⚖️ 重量','🌡️ 温度','📐 面积','🧪 体积','🏃 速度','💾 数据','📐 角度','⚡ 能量','💨 压力','💰 货币','👕 尺码','🕐 时区']:
-      ['📏 Length','⚖️ Weight','🌡️ Temp','📐 Area','🧪 Volume','🏃 Speed','💾 Data','📐 Angle','⚡ Energy','💨 Pressure','💰 Currency','👕 Size','🕐 Timezone'];
-    CATEGORIES[i][0]=lbl[i];
-  }
+  // Update category button labels
+  document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
+    let cat=btn.dataset.cat;
+    let catIdx=CATEGORIES.findIndex(c=>c[1]===cat);
+    if(catIdx>=0)CATEGORIES[catIdx][0]=catLabels[L][cat];
+    btn.textContent=catLabels[L][cat];
+  });
   buildUI();
 }
 
