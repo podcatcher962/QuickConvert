@@ -59,19 +59,19 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <div class="cat-bar" id="catBar">
-  <button class="cat-btn active" data-cat="length">📏 长度</button>
-  <button class="cat-btn" data-cat="weight">⚖️ 重量</button>
-  <button class="cat-btn" data-cat="temperature">🌡️ 温度</button>
-  <button class="cat-btn" data-cat="area">📐 面积</button>
-  <button class="cat-btn" data-cat="volume">🧪 体积</button>
-  <button class="cat-btn" data-cat="speed">🏃 速度</button>
-  <button class="cat-btn" data-cat="data">💾 数据</button>
-  <button class="cat-btn" data-cat="angle">📐 角度</button>
-  <button class="cat-btn" data-cat="energy">⚡ 能量</button>
-  <button class="cat-btn" data-cat="pressure">💨 压力</button>
-  <button class="cat-btn" data-cat="currency">💰 货币</button>
-  <button class="cat-btn" data-cat="size">👕 尺码</button>
-  <button class="cat-btn" data-cat="timezone">🕐 时区</button>
+  <button class="cat-btn active" onclick="selectCat('length')">📏 长度</button>
+  <button class="cat-btn" onclick="selectCat('weight')">⚖️ 重量</button>
+  <button class="cat-btn" onclick="selectCat('temperature')">🌡️ 温度</button>
+  <button class="cat-btn" onclick="selectCat('area')">📐 面积</button>
+  <button class="cat-btn" onclick="selectCat('volume')">🧪 体积</button>
+  <button class="cat-btn" onclick="selectCat('speed')">🏃 速度</button>
+  <button class="cat-btn" onclick="selectCat('data')">💾 数据</button>
+  <button class="cat-btn" onclick="selectCat('angle')">📐 角度</button>
+  <button class="cat-btn" onclick="selectCat('energy')">⚡ 能量</button>
+  <button class="cat-btn" onclick="selectCat('pressure')">💨 压力</button>
+  <button class="cat-btn" onclick="selectCat('currency')">💰 货币</button>
+  <button class="cat-btn" onclick="selectCat('size')">👕 尺码</button>
+  <button class="cat-btn" onclick="selectCat('timezone')">🕐 时区</button>
 </div>
 <div class="base-row" id="baseRow">
   <label id="baseLabel">基准:</label>
@@ -209,10 +209,6 @@ function buildUI(){
   document.getElementById('btnCopyOne').textContent=t('copyOne');
   document.getElementById('btnCopyAll').textContent=t('copyAll');
   
-  // Bind click handlers to pre-rendered category buttons
-  document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
-    btn.onclick=()=>selectCat(btn.dataset.cat);
-  });
   
   if(currentCat==='currency'){
     document.getElementById('currencyBar').style.display='flex';
@@ -288,9 +284,10 @@ function selectCat(key){
   currentCat=key;
   selectedLine=null;
   document.getElementById('btnCopyOne').disabled=true;
-  // Update active button class
+  // Update active button via onclick attribute
   document.querySelectorAll('#catBar .cat-btn').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.cat===key);
+    let match = btn.getAttribute('onclick')||'';
+    btn.classList.toggle('active', match.includes(\"'\"+key+\"'\")) || match.includes('\"'+key+'\"'));
   });
   buildUI();
 }
