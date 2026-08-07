@@ -75,11 +75,27 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 <div class="base-row" id="baseRow">
   <label id="baseLabel">基准:</label>
-  <select id="baseSelect" onchange="onBaseChange()"></select>
+  <select id="baseSelect" onchange="onBaseChange()">
+    <option value="0" selected>米 (m)</option>
+    <option value="1">厘米 (cm)</option>
+    <option value="2">毫米 (mm)</option>
+    <option value="3">千米 (km)</option>
+    <option value="4">尺 (chi)</option>
+    <option value="5">寸 (cun)</option>
+    <option value="6">丈 (zhang)</option>
+    <option value="7">英尺 (ft)</option>
+    <option value="8">英寸 (in)</option>
+    <option value="9">码 (yd)</option>
+    <option value="10">英里 (mi)</option>
+    <option value="11">里 (li)</option>
+    <option value="12">海里 (nmi)</option>
+  </select>
 </div>
 <div id="currencyBar">
   <label id="curLabel">输入币种:</label>
-  <select id="curSelect" onchange="convert()"></select>
+  <select id="curSelect" onchange="convert()">
+    <option selected>美元 (USD)</option><option>人民币 (CNY)</option><option>欧元 (EUR)</option><option>日元 (JPY)</option><option>英镑 (GBP)</option><option>港币 (HKD)</option><option>韩元 (KRW)</option><option>澳元 (AUD)</option><option>加元 (CAD)</option><option>新加坡元 (SGD)</option><option>瑞士法郎 (CHF)</option><option>新台币 (TWD)</option>
+  </select>
   <button class="btn btn-offline" onclick="convert();statusMsg('当前: 离线固定汇率')" id="btnOffline">📴 离线</button>
   <button class="btn btn-live" onclick="fetchLiveRates()" id="btnLive">🌐 实时汇率</button>
 </div>
@@ -205,16 +221,9 @@ function buildUI(){
     document.getElementById('btnOffline').textContent=t('offline');
     document.getElementById('btnLive').textContent=t('live');
     document.getElementById('baseLabel').textContent=t('base');
+    // Currency select already populated in HTML
     let sel=document.getElementById('curSelect');
-    sel.innerHTML='';
-    let cd=curDict();
-    for(let k of Object.keys(cd)){
-      let opt=document.createElement('option');
-      opt.value=k;opt.textContent=k;
-      if(k===currencyBaseKey)opt.selected=true;
-      sel.appendChild(opt);
-    }
-    currencyBaseKey=sel.value;
+    if(sel.selectedIndex>=0)currencyBaseKey=sel.value;
   }else if(currentCat==='temperature'){
     document.getElementById('currencyBar').style.display='none';
     document.getElementById('baseRow').style.display='flex';
@@ -236,6 +245,7 @@ function buildUI(){
 
 function buildBaseSelect(){
   let sel=document.getElementById('baseSelect'),units=UNITS[currentCat];
+  if(!units)return;
   sel.innerHTML='';
   let bi=baseIdx[currentCat]||0;
   if(bi>=units.length)bi=0;
