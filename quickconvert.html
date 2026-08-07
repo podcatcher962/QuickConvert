@@ -50,6 +50,9 @@ footer a{color:var(--accent);text-decoration:none}
 
 <div class="title-bar">
   <div><h1>🔢 QuickConvert</h1><span class="sub" id="subTitle">永远的兰兰 · 万能换算</span></div>
+  <a href="https://github.com/podcatcher962/QuickConvert/releases/latest" target="_blank"
+     style="background:#283593;color:#fff;text-decoration:none;padding:6px 14px;border-radius:4px;font-size:12px;white-space:nowrap;font-weight:600"
+     id="dlBtn">💻 桌面版</a>
   <button class="lang-btn" onclick="toggleLang()" id="langBtn">中/EN</button>
 </div>
 
@@ -211,8 +214,7 @@ function getAnalogy(cat,bv){
 
 // ======================= RENDER =======================
 function buildUI(){
-  document.getElementById('subTitle').textContent=t('title');
-  document.getElementById('langBtn').textContent=L=='zh'?'中/EN':'EN/中';
+  document.getElementById('dlBtn').textContent=L=='zh'?'💻 桌面版':'💻 Desktop';
   document.getElementById('inputLabel').textContent='';
   document.getElementById('status').textContent=t('status');
   document.getElementById('btnCopyOne').textContent=t('copyOne');
