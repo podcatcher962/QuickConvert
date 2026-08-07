@@ -471,9 +471,7 @@ async function fetchLiveRates(){
 }
 
 // ======================= INIT =======================
-document.addEventListener('DOMContentLoaded',()=>{
-  buildUI();
-});
+buildUI();
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.key>='1'&&e.key<='9'){
     e.preventDefault();
